@@ -27,6 +27,12 @@ arquitetura modular, testes e CI — só falta o **seu domínio**.
 - **Deploy**: profile `prod`, TLS terminado no reverse proxy (`deploy/Caddyfile` +
   `docker-compose.tls.yml`).
 
+## Documentação
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — arquitetura (camadas, fronteiras, fluxo, como adicionar feature).
+- [docs/DOCUMENTOS-BASE.md](docs/DOCUMENTOS-BASE.md) — lista dos documentos base e ordem de uso ao iniciar uma app.
+- [CLAUDE.md](CLAUDE.md) · [REQUIREMENTS.md](REQUIREMENTS.md) · [docs/GLOSSARY.md](docs/GLOSSARY.md) · [docs/decisions/](docs/decisions/) (ADRs).
+
 ## Domínio de exemplo (adapte/remova)
 
 `auth/domain/UserProfile` traz campos de exemplo (`currentLevel`, `totalXp`, `streakDays`)
