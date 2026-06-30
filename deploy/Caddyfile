@@ -1,0 +1,24 @@
+# Reverse proxy com TLS para a API (termina HTTPS e repassa para a app em HTTP interno).
+#
+# LOCAL (HTTPS de verdade com cert interno do Caddy):
+#   - acesse https://localhost  (o navegador/curl vai reclamar do cert interno; use -k no curl)
+#
+# PRODUÇÃO: troque "localhost" pelo seu domínio (ex.: api.seudominio.com). O Caddy emite e
+#   renova um certificado Let's Encrypt automaticamente, e já redireciona HTTP->HTTPS.
+#
+# O bloco abaixo também envia X-Forwarded-Proto=https, que a app lê graças a
+# `server.forward-headers-strategy: framework` (application-prod.yml) -> HSTS sob HTTPS.
+
+localhost {
+    tls internal
+    encode gzip
+    reverse_proxy host.docker.internal:8080 {
+        header_up X-Forwarded-Proto https
+    }
+}
+
+# --- Exemplo de produção (descomente e ajuste) ---
+# api.seudominio.com {
+#     encode gzip
+#     reverse_proxy app:8080
+# }

@@ -1,0 +1,30 @@
+# Reverse proxy TLS (Caddy) para demonstrar/usar HTTPS na frente da API.
+#
+# Uso local (com a app rodando no host em :8080, ex.: ./gradlew bootRun):
+#   docker compose -f docker-compose.tls.yml up -d
+#   curl -k https://localhost/actuator/health
+#
+# Em produção a app normalmente também é um container; troque host.docker.internal
+# por o nome do serviço da app no Caddyfile e adicione a app a este compose.
+
+services:
+  caddy:
+    image: caddy:2
+    container_name: english-app-caddy
+    restart: unless-stopped
+    ports:
+      # 443 = HTTPS. A 80 (redirect HTTP->HTTPS) costuma estar ocupada em máquina de dev,
+      # então fica comentada aqui; em produção, descomente para o redirect automático.
+      # - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      # Permite o Caddy (container) alcançar a app rodando no host (Linux: host-gateway).
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  caddy_data:
+  caddy_config:

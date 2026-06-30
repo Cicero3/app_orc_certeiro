@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs e variáveis de ambiente
+*.log
+.env
+.env.local
+
+# Saída de testes/cobertura
+out/

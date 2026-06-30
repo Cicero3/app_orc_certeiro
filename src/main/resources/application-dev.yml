@@ -1,0 +1,126 @@
+# ==============================================================================
+# PERFIL: DEV (Desenvolvimento Local)
+# ==============================================================================
+# Ativação: ./gradlew bootRun --args='--spring.profiles.active=dev'
+# ou via variável: SPRING_PROFILES_ACTIVE=dev
+#
+# ⚠️ ATENÇÃO: Este arquivo contém credenciais e secrets INSEGUROS.
+# NUNCA commitar equivalentes em application-prod.yml com valores literais.
+# ==============================================================================
+
+spring:
+  # ----------------------------------------------------------------------------
+  # DATABASE (PostgreSQL 16 via Docker)
+  # ----------------------------------------------------------------------------
+  datasource:
+    url: jdbc:postgresql://localhost:5432/english_app
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000        # 5 min
+      connection-timeout: 20000   # 20 seg
+      pool-name: EnglishAppHikariPool
+
+  # ----------------------------------------------------------------------------
+  # JPA / HIBERNATE
+  # ----------------------------------------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: validate          # ✅ Flyway gerencia schema; JPA só valida
+    show-sql: true                # ✅ Em dev: mostra SQL no console
+    open-in-view: false           # ⚠️ Previne lazy loading fora de transação
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC          # ✅ Força UTC em todas as datas
+        default_schema: public
+
+  # ----------------------------------------------------------------------------
+  # FLYWAY (Migrations + Seeds DEV)
+  # ----------------------------------------------------------------------------
+  flyway:
+    enabled: true
+    # ✅ Em DEV: roda migrations + seeds (pasta db/seed)
+    # Em PROD (application-prod.yml): apenas classpath:db/migration
+    locations: classpath:db/migration,classpath:db/seed
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false           # ❌ Não permite migrations fora de ordem
+    clean-disabled: true          # ❌ Previne flywayClean acidental
+
+  # ----------------------------------------------------------------------------
+  # REDIS (Cache + Sessões)
+  # ----------------------------------------------------------------------------
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# ==============================================================================
+# JWT CONFIGURATION (Dev-only secrets)
+# ==============================================================================
+# ⚠️ Estes valores NUNCA devem ser usados em produção.
+# Em prod, usar variáveis de ambiente (ver application-prod.yml).
+jwt:
+  secret: dev-secret-DO-NOT-use-IN-production-must-be-at-least-32-chars-long-abc123xyz
+  expiration-ms: 86400000         # 24 horas (em dev pode ser maior para testes)
+  issuer: english-app-dev
+  refresh-token-expiration-ms: 604800000  # 7 dias
+
+# ==============================================================================
+# SERVER
+# ==============================================================================
+server:
+  port: 8080
+  error:
+    include-stacktrace: always    # ✅ Em dev: mostra stack trace completo
+    include-message: always
+    include-binding-errors: always
+
+# ==============================================================================
+# LOGGING (Verbose para debug)
+# ==============================================================================
+logging:
+  level:
+    root: INFO
+    com.example.api: DEBUG                     # ✅ Logs detalhados do app
+    org.springframework.security: DEBUG       # ✅ Debug de auth/security
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG                  # ✅ Mostra SQL gerado
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # ✅ Mostra parâmetros
+    org.flywaydb: INFO                        # Flyway migrations
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ==============================================================================
+# ACTUATOR (Health checks e métricas em dev)
+# ==============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,flyway,env
+  endpoint:
+    health:
+      show-details: always
+
+# ==============================================================================
+# SPRINGDOC (OpenAPI / Swagger UI)
+# ==============================================================================
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method

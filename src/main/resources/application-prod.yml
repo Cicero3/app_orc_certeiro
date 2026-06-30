@@ -1,0 +1,90 @@
+# ==============================================================================
+# PERFIL: PRODUÇÃO
+# ==============================================================================
+# ⚠️ Todos os secrets vêm de variáveis de ambiente.
+# NUNCA commitar valores literais aqui.
+# ==============================================================================
+
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false               # ❌ Nunca mostrar SQL em produção
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    # ⚠️ APENAS migrations. Seeds (V999) NUNCA rodam em produção.
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    clean-disabled: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 900000           # access token: 15 min (curto; refresh assume o long-lived)
+  issuer: english-app
+  refresh-token-expiration-ms: 604800000   # refresh token: 7 dias
+
+# CORS: em produção, origens só vêm de env (fail-closed — vazio bloqueia cross-origin).
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+  # Refresh token em cookie httpOnly: exige HTTPS em produção (TLS no proxy).
+  # Para frontend em domínio diferente do backend, defina REFRESH_COOKIE_SAMESITE=None.
+  auth:
+    refresh-cookie:
+      secure: true
+      same-site: ${REFRESH_COOKIE_SAMESITE:Lax}
+      domain: ${REFRESH_COOKIE_DOMAIN:}
+
+server:
+  port: ${PORT:8080}
+  # TLS é terminado no reverse proxy (Caddy/Nginx/ALB). Esta opção faz a app respeitar
+  # X-Forwarded-Proto/Host do proxy -> URLs corretas e HSTS enviado só sob HTTPS real.
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never     # ❌ Nunca expor em produção
+    include-message: never
+
+logging:
+  level:
+    root: WARN
+    com.example.api: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Swagger/OpenAPI desabilitados em produção (não expor superfície de docs).
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

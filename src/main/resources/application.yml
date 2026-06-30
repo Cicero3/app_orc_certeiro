@@ -1,0 +1,115 @@
+# ==============================================================================
+# CONFIGURAÇÃO BASE (Comum a todos os ambientes)
+# ==============================================================================
+# Este arquivo contém apenas configurações que NÃO mudam entre dev/prod.
+# Configurações específicas de ambiente vão em:
+#   - application-dev.yml  (desenvolvimento local)
+#   - application-prod.yml (produção)
+#
+# ⚠️ NÃO definir spring.profiles.active aqui!
+# O profile deve ser ativado explicitamente via:
+#   - Variável de ambiente: SPRING_PROFILES_ACTIVE=dev
+#   - Argumento: --spring.profiles.active=dev
+# ==============================================================================
+
+spring:
+  application:
+    name: english-app
+
+  # ----------------------------------------------------------------------------
+  # JACKSON (Serialização JSON global)
+  # ----------------------------------------------------------------------------
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false    # ✅ ISO 8601 para datas
+      indent-output: false                  # ❌ Não indentar em produção
+    deserialization:
+      fail-on-unknown-properties: false     # ✅ Tolerante a campos extras
+    default-property-inclusion: non_null    # ✅ Omite campos null do JSON
+    time-zone: UTC                          # ✅ Força UTC globalmente
+
+  # ----------------------------------------------------------------------------
+  # SERVLET (Configurações de multipart, encoding)
+  # ----------------------------------------------------------------------------
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # ----------------------------------------------------------------------------
+  # WEB (Configurações gerais)
+  # ----------------------------------------------------------------------------
+  web:
+    resources:
+      add-mappings: false                   # ❌ API-only, não servir static
+
+# ==============================================================================
+# SERVER (Configurações HTTP)
+# ==============================================================================
+server:
+  port: ${PORT:8080}                        # ✅ Override via env var PORT
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,application/xml
+    min-response-size: 1024
+  error:
+    include-stacktrace: never               # ⚠️ Override em dev para "always"
+    include-message: never                  # ⚠️ Override em dev para "always"
+    include-binding-errors: never           # ⚠️ Override em dev para "always"
+    whitelabel:
+      enabled: false                        # ❌ Desabilita página de erro padrão
+
+# ==============================================================================
+# ACTUATOR (Health checks e métricas)
+# ==============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics        # ✅ Mínimo seguro
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized         # ⚠️ Override em dev para "always"
+      probes:
+        enabled: true                       # ✅ Para Kubernetes (liveness/readiness)
+  info:
+    env:
+      enabled: true
+
+# ==============================================================================
+# SPRINGDOC (OpenAPI / Swagger UI)
+# ==============================================================================
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    enabled: true                           # ⚠️ Desabilitar em prod via profile
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+
+# ==============================================================================
+# LOGGING (Configuração base)
+# ==============================================================================
+logging:
+  level:
+    root: INFO
+    com.example.api: INFO                    # ⚠️ Override em dev para DEBUG
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN                 # ⚠️ Override em dev para DEBUG
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ==============================================================================
+# INFO (Exibido em /actuator/info)
+# ==============================================================================
+info:
+  app:
+    name: English Learning App
+    description: MVP - English learning platform for Brazilian students
+    version: 1.0.0-SNAPSHOT
