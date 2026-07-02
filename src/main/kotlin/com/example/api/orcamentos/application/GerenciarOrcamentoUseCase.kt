@@ -1,6 +1,6 @@
 package com.example.api.orcamentos.application
 
-import com.example.api.auth.domain.User
+
 import com.example.api.orcamentos.api.dto.OrcamentoCreateDto
 import com.example.api.orcamentos.api.dto.OrcamentoSummaryDto
 import com.example.api.orcamentos.domain.Orcamento
@@ -16,10 +16,10 @@ class GerenciarOrcamentoUseCase(
 ) {
 
     @Transactional
-    fun criarOrcamento(user: User, dto: OrcamentoCreateDto): OrcamentoSummaryDto {
+    fun criarOrcamento(userId: UUID, dto: OrcamentoCreateDto): OrcamentoSummaryDto {
         val novoOrcamento = Orcamento(
-            tenantId = user.id, // O Tenant inicialmente é o próprio usuário (Single-user por enquanto)
-            ownerId = user.id,
+            tenantId = userId, // O Tenant inicialmente é o próprio usuário (Single-user por enquanto)
+            ownerId = userId,
             titulo = dto.titulo,
             bdi = dto.bdi ?: BigDecimal.ZERO
         )

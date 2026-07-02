@@ -1,6 +1,6 @@
 package com.example.api.orcamentos.api
 
-import com.example.api.auth.domain.User
+import com.example.api.auth.security.UserPrincipal
 import com.example.api.common.dto.ApiResponse
 import com.example.api.orcamentos.api.dto.OrcamentoCreateDto
 import com.example.api.orcamentos.api.dto.OrcamentoSummaryDto
@@ -20,16 +20,16 @@ class OrcamentosController(
 
     @PostMapping
     fun criar(
-        @AuthenticationPrincipal user: User,
+        @AuthenticationPrincipal user: UserPrincipal,
         @RequestBody dto: OrcamentoCreateDto
     ): ResponseEntity<ApiResponse<OrcamentoSummaryDto>> {
-        val result = gerenciarOrcamentoUseCase.criarOrcamento(user, dto)
+        val result = gerenciarOrcamentoUseCase.criarOrcamento(user.id, dto)
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse(data = result))
     }
 
     @GetMapping
     fun listarMeus(
-        @AuthenticationPrincipal user: User
+        @AuthenticationPrincipal user: UserPrincipal
     ): ResponseEntity<ApiResponse<List<OrcamentoSummaryDto>>> {
         val result = gerenciarOrcamentoUseCase.listarMeusOrcamentos(user.id)
         return ResponseEntity.ok(ApiResponse(data = result))
