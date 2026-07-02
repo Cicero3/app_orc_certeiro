@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } f
 import { useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { Catalogo } from './pages/Catalogo';
 import { LogOut } from 'lucide-react';
 import './index.css'; 
 
@@ -94,7 +95,7 @@ function App() {
         {/* Rotas Privadas */}
         <Route path="/" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
         <Route path="/orcamentos" element={<ProtectedRoute><MainLayout><OrcamentosList /></MainLayout></ProtectedRoute>} />
-        <Route path="/catalogo" element={<ProtectedRoute><MainLayout><div className="animate-fade-in"><h1>Catálogo Base</h1></div></MainLayout></ProtectedRoute>} />
+        <Route path="/catalogo" element={<ProtectedRoute><MainLayout><Catalogo /></MainLayout></ProtectedRoute>} />
       </Routes>
     </Router>
   );

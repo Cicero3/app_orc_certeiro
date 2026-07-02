@@ -11,4 +11,10 @@ interface CatalogoItemRepository : JpaRepository<CatalogoItem, UUID> {
 
     @Query("SELECT c FROM CatalogoItem c LEFT JOIN FETCH c.insumos WHERE c.id = :id")
     fun findByIdWithInsumos(id: UUID): CatalogoItem?
+
+    fun findByDescricaoContainingIgnoreCaseOrCodigoContainingIgnoreCase(
+        descricao: String,
+        codigo: String,
+        pageable: org.springframework.data.domain.Pageable
+    ): org.springframework.data.domain.Page<CatalogoItem>
 }
