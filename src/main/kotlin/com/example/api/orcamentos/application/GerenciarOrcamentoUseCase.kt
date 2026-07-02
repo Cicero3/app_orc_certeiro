@@ -24,9 +24,8 @@ class GerenciarOrcamentoUseCase(
             bdi = dto.bdi ?: BigDecimal.ZERO
         )
 
-        val orcamentoSalvo = orcamentoRepository.save(novoOrcamento)
-
-        return mapToSummaryDto(orcamentoSalvo)
+        val salvo = orcamentoRepository.saveAndFlush(novoOrcamento)
+        return mapToSummaryDto(salvo)
     }
 
     @Transactional(readOnly = true)

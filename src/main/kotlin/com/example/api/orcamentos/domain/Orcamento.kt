@@ -47,12 +47,12 @@ class Orcamento(
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    lateinit var createdAt: Instant
+    var createdAt: Instant = Instant.now()
         protected set
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    lateinit var updatedAt: Instant
+    var updatedAt: Instant = Instant.now()
         protected set
 
     // Calcula o valor total com base nos itens da EAP e BDI
