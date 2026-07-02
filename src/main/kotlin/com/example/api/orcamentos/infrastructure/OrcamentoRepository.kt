@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface OrcamentoRepository : JpaRepository<Orcamento, UUID>
+interface OrcamentoRepository : JpaRepository<Orcamento, UUID> {
+    fun findAllByOwnerIdOrderByCreatedAtDesc(ownerId: UUID): List<Orcamento>
+}

@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Catalogo } from './pages/Catalogo';
+import { OrcamentosList } from './pages/OrcamentosList';
 import { LogOut } from 'lucide-react';
 import './index.css'; 
 
@@ -24,17 +25,7 @@ const Dashboard = () => (
   </div>
 );
 
-const OrcamentosList = () => (
-  <div className="animate-fade-in">
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <h1>Meus Orçamentos</h1>
-      <button className="btn-primary">+ Novo Orçamento</button>
-    </div>
-    <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-      <p>Nenhum orçamento criado ainda.</p>
-    </div>
-  </div>
-);
+// Removed dummy OrcamentosList
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
