@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import com.example.api.orcamentos.domain.DomainSecurityException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -26,6 +27,23 @@ class GlobalExceptionHandler {
                 error = ErrorResponse.ErrorDetail(
                     code = "BAD_REQUEST",
                     message = ex.message ?: "Invalid request",
+                    path = request.requestURI
+                )
+            )
+        )
+    }
+
+    @ExceptionHandler(DomainSecurityException::class)
+    fun handleDomainSecurity(
+        ex: DomainSecurityException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        logger.warn("Domain Security Violation at ${request.requestURI}: ${ex.message}")
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            ErrorResponse(
+                error = ErrorResponse.ErrorDetail(
+                    code = "DOMAIN_SECURITY_VIOLATION",
+                    message = ex.message ?: "Ação bloqueada pelas regras de negócio",
                     path = request.requestURI
                 )
             )
