@@ -6,11 +6,11 @@ from datetime import datetime
 
 # --- CONFIGURAÇÕES ---
 # Em produção, essas variáveis viriam de variáveis de ambiente
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "app_orc_certeiro"
-DB_USER = "postgres"
-DB_PASS = "postgres"
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "app_orc_certeiro")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASS = os.getenv("DB_PASS", "postgres")
 
 # Caminhos dos arquivos (Exemplo: colocar os arquivos na pasta data/)
 # O SINAPI libera dois arquivos: um com as Composições (serviços) e outro com Insumos (ingredientes)

@@ -1,25 +1,65 @@
 version: '3.8'
+
 services:
   postgres:
-    image: postgres:16
-    container_name: english-app-postgres
+    image: postgres:16-alpine
+    container_name: app_orc_certeiro_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app_orc_certeiro
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=english_app
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app_orc_certeiro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:7
-    container_name: english-app-redis
+    image: redis:7-alpine
+    container_name: app_orc_certeiro_redis
     ports:
       - "6379:6379"
     volumes:
-      - redisdata:/data
+      - redis_data:/data
+
+  backend:
+    build: .
+    container_name: app_orc_certeiro_backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_orc_certeiro
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  etl:
+    build: ./scripts/sinapi_etl
+    container_name: app_orc_certeiro_etl
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: app_orc_certeiro
+      DB_USER: postgres
+      DB_PASS: postgres
+    volumes:
+      - ./scripts/sinapi_etl/data:/etl/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - etl
 
 volumes:
-  pgdata:
-  redisdata:
+  postgres_data:
+  redis_data:
