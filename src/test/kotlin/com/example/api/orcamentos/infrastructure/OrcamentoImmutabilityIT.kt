@@ -52,11 +52,14 @@ class OrcamentoImmutabilityIT : AbstractIntegrationTest() {
         orcamento.adicionarModulo(modulo)
         modulo.adicionarEapItem(EapItem(codigoItem = "1", descricao = "Item 1", quantidade = BigDecimal("10"), valorMo = BigDecimal("50")))
         
-        orcamento.solicitarAprovacao(testUser.id)
-        orcamento.aprovar(testUser.id, true) // Forçando aprovação para o teste
+        // Salva primeiro como RASCUNHO (status inicial) para inserir os itens
+        var savedOrcamento = orcamentoRepository.saveAndFlush(orcamento)
         
-        // Salva com status APROVADO
-        val savedOrcamento = orcamentoRepository.saveAndFlush(orcamento)
+        savedOrcamento.solicitarAprovacao(testUser.id)
+        savedOrcamento.aprovar(testUser.id, true) // Forçando aprovação para o teste
+        
+        // Salva a alteração de status para APROVADO
+        savedOrcamento = orcamentoRepository.saveAndFlush(savedOrcamento)
         
         // 2. Tentar alterar o BDI diretamente no banco ignorando o domínio
         // (Isso simula uma query maliciosa, um bug no código que ignorou as Guard Clauses, etc)
