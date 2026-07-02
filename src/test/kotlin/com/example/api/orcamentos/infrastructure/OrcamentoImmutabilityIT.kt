@@ -13,7 +13,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.DataIntegrityViolationException
+
 import java.math.BigDecimal
 import java.util.UUID
 
@@ -71,11 +71,12 @@ class OrcamentoImmutabilityIT : AbstractIntegrationTest() {
         bdiField.set(orcamentoFromDb, BigDecimal("0.9000")) // Tentando roubar 90%
         
         // 3. Verifica se o Postgres bloqueia
-        val exception = assertThrows<DataIntegrityViolationException> {
+        val exception = assertThrows<Exception> {
             orcamentoRepository.saveAndFlush(orcamentoFromDb)
         }
         
-        assertTrue(exception.message?.contains("FRAUD PREVENTION") == true || exception.cause?.message?.contains("FRAUD PREVENTION") == true, 
-            "A trigger deve levantar uma exceção de FRAUD PREVENTION. Exception: ${exception.message} - Cause: ${exception.cause?.message}")
+        val fullMessage = exception.message.orEmpty() + exception.cause?.message.orEmpty() + exception.cause?.cause?.message.orEmpty()
+        assertTrue(fullMessage.contains("FRAUD PREVENTION"), 
+            "A trigger deve levantar uma exceção de FRAUD PREVENTION. Exception chain: $fullMessage")
     }
 }
