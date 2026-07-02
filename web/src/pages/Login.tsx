@@ -27,7 +27,7 @@ export const Login: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Credenciais inválidas');
+        throw new Error(data.error?.message || data.message || 'Credenciais inválidas');
       }
 
       login(data.data);

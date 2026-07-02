@@ -34,7 +34,8 @@ export const Register: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Erro ao registrar usuário');
+        // Agora lê a mensagem de erro específica vinda do Backend (data.error.message)
+        throw new Error(data.error?.message || data.message || 'Erro ao registrar usuário');
       }
 
       login(data.data);
@@ -86,10 +87,11 @@ export const Register: React.FC = () => {
               <input
                 type="password"
                 required
+                minLength={12}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ width: '100%', padding: '0.8rem 1rem 0.8rem 2.8rem', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', outline: 'none' }}
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 12 caracteres"
               />
             </div>
           </div>
