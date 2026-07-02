@@ -34,4 +34,13 @@ class OrcamentosController(
         val result = gerenciarOrcamentoUseCase.listarMeusOrcamentos(user.id)
         return ResponseEntity.ok(ApiResponse(data = result))
     }
+
+    @DeleteMapping("/{id}")
+    fun excluir(
+        @PathVariable id: java.util.UUID,
+        @AuthenticationPrincipal user: UserPrincipal
+    ): ResponseEntity<Void> {
+        gerenciarOrcamentoUseCase.excluirOrcamento(user.id, id)
+        return ResponseEntity.noContent().build()
+    }
 }

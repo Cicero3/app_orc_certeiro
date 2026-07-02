@@ -34,6 +34,18 @@ class GerenciarOrcamentoUseCase(
         return orcamentos.map { mapToSummaryDto(it) }
     }
 
+    @Transactional
+    fun excluirOrcamento(userId: UUID, orcamentoId: UUID) {
+        val orcamento = orcamentoRepository.findById(orcamentoId)
+            .orElseThrow { IllegalArgumentException("Orçamento não encontrado.") }
+        
+        if (orcamento.ownerId != userId) {
+            throw SecurityException("Você não tem permissão para excluir este orçamento.")
+        }
+        
+        orcamentoRepository.delete(orcamento)
+    }
+
     private fun mapToSummaryDto(orcamento: Orcamento): OrcamentoSummaryDto {
         return OrcamentoSummaryDto(
             id = orcamento.id,
