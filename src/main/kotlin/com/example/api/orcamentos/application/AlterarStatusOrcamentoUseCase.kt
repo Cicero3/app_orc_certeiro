@@ -17,7 +17,13 @@ class AlterarStatusOrcamentoUseCase(
         val orcamento = orcamentoRepository.findById(orcamentoId)
             .orElseThrow { IllegalArgumentException("Orçamento não encontrado") }
 
+        // Dono opera o próprio orçamento; admin pode operar qualquer um (aprovação interna).
+        if (orcamento.ownerId != usuarioAprovadorId && !isAdmin) {
+            throw DomainSecurityException("Você não tem permissão para alterar o status deste orçamento.")
+        }
+
         when (acao.uppercase()) {
+            "SOLICITAR_APROVACAO" -> orcamento.solicitarAprovacao(usuarioAprovadorId)
             "APROVAR" -> orcamento.aprovar(usuarioAprovadorId, isAdmin)
             "REJEITAR" -> orcamento.rejeitarInternamente(usuarioAprovadorId, isAdmin)
             "ENVIAR_CLIENTE" -> orcamento.enviarAoCliente()

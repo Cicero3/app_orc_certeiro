@@ -37,6 +37,21 @@ class OrcamentoTest {
     }
 
     @Test
+    fun `should include nested sub item leaves in total value`() {
+        val orcamento = Orcamento(tenantId = tenantId, ownerId = ownerId, titulo = "Teste") // BDI 0
+        val modulo = OrcamentoModulo(tipoModulo = TipoModulo.HIDRAULICA, nome = "Hidráulica")
+        orcamento.adicionarModulo(modulo)
+
+        // Pai agrupador: valores próprios não contam, apenas as folhas
+        val pai = EapItem(codigoItem = "4", descricao = "Instalações", quantidade = BigDecimal.ONE, valorMo = BigDecimal("999"))
+        modulo.adicionarEapItem(pai)
+        pai.adicionarSubItem(EapItem(codigoItem = "4.1", descricao = "Ponto de água", quantidade = BigDecimal("10"), valorMo = BigDecimal("50"))) // 500
+        pai.adicionarSubItem(EapItem(codigoItem = "4.2", descricao = "Ponto de esgoto", quantidade = BigDecimal("2"), valorMo = BigDecimal("70"))) // 140
+
+        assertEquals(0, BigDecimal("640").compareTo(orcamento.valorTotal))
+    }
+
+    @Test
     fun `should not allow negative values in EAP items`() {
         assertThrows<DomainSecurityException> {
             EapItem(codigoItem = "1.1", descricao = "Erro", quantidade = BigDecimal("-5"), valorMo = BigDecimal("10"))

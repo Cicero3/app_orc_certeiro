@@ -55,16 +55,19 @@ class Orcamento(
     var updatedAt: Instant = Instant.now()
         protected set
 
+    // Custo direto: soma dos itens folha da EAP (descendo a árvore de subitens)
+    val custoDireto: BigDecimal
+        get() = _modulos.flatMap { it.eapItens }
+            .flatMap { coletarFolhas(it) }
+            .fold(BigDecimal.ZERO) { acc, item -> acc.add(item.custoTotal) }
+
     // Calcula o valor total com base nos itens da EAP e BDI
     val valorTotal: BigDecimal
-        get() {
-            // Soma de todos os itens folha da EAP em todos os módulos
-            val somaEap = _modulos.flatMap { it.eapItens }
-                                  .filter { it.subItens.isEmpty() } // Apenas itens folha
-                                  .fold(BigDecimal.ZERO) { acc, item -> acc.add(item.custoTotal) }
-            val fatorBdi = BigDecimal.ONE.add(bdi)
-            return somaEap.multiply(fatorBdi)
-        }
+        get() = custoDireto.multiply(BigDecimal.ONE.add(bdi))
+
+    private fun coletarFolhas(item: EapItem): List<EapItem> =
+        if (item.subItens.isEmpty()) listOf(item)
+        else item.subItens.flatMap { coletarFolhas(it) }
 
     // --- GUARD CLAUSES & COMPORTAMENTOS DO DOMÍNIO ---
 

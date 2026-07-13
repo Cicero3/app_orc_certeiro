@@ -2,9 +2,12 @@ package com.example.api.orcamentos.application
 
 
 import com.example.api.orcamentos.api.dto.OrcamentoCreateDto
+import com.example.api.orcamentos.api.dto.OrcamentoDetailDto
 import com.example.api.orcamentos.api.dto.OrcamentoSummaryDto
+import com.example.api.orcamentos.domain.DomainSecurityException
 import com.example.api.orcamentos.domain.Orcamento
 import com.example.api.orcamentos.infrastructure.OrcamentoRepository
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -34,16 +37,33 @@ class GerenciarOrcamentoUseCase(
         return orcamentos.map { mapToSummaryDto(it) }
     }
 
+    @Transactional(readOnly = true)
+    fun detalharOrcamento(userId: UUID, orcamentoId: UUID): OrcamentoDetailDto {
+        val orcamento = carregarOrcamentoDoDono(userId, orcamentoId)
+        return PlanilhaMapper.toDetailDto(orcamento)
+    }
+
+    @Transactional
+    fun atualizarBdi(userId: UUID, orcamentoId: UUID, novoBdi: BigDecimal): OrcamentoDetailDto {
+        val orcamento = carregarOrcamentoDoDono(userId, orcamentoId)
+        orcamento.atualizarBdi(novoBdi)
+        orcamentoRepository.save(orcamento)
+        return PlanilhaMapper.toDetailDto(orcamento)
+    }
+
     @Transactional
     fun excluirOrcamento(userId: UUID, orcamentoId: UUID) {
-        val orcamento = orcamentoRepository.findById(orcamentoId)
-            .orElseThrow { IllegalArgumentException("Orçamento não encontrado.") }
-        
-        if (orcamento.ownerId != userId) {
-            throw SecurityException("Você não tem permissão para excluir este orçamento.")
-        }
-        
+        val orcamento = carregarOrcamentoDoDono(userId, orcamentoId)
         orcamentoRepository.delete(orcamento)
+    }
+
+    private fun carregarOrcamentoDoDono(userId: UUID, orcamentoId: UUID): Orcamento {
+        val orcamento = orcamentoRepository.findById(orcamentoId)
+            .orElseThrow { EntityNotFoundException("Orçamento não encontrado.") }
+        if (orcamento.ownerId != userId) {
+            throw DomainSecurityException("Você não tem permissão para acessar este orçamento.")
+        }
+        return orcamento
     }
 
     private fun mapToSummaryDto(orcamento: Orcamento): OrcamentoSummaryDto {
