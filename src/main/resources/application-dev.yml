@@ -13,7 +13,7 @@ spring:
   # DATABASE (PostgreSQL 16 via Docker)
   # ----------------------------------------------------------------------------
   datasource:
-    url: jdbc:postgresql://localhost:5432/english_app
+    url: jdbc:postgresql://localhost:5432/app_orc_certeiro
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
