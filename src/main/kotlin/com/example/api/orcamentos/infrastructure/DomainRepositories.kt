@@ -4,6 +4,9 @@ import com.example.api.orcamentos.domain.OrcamentoModulo
 import com.example.api.orcamentos.domain.EapItem
 import com.example.api.orcamentos.domain.AmbienteProjeto
 import com.example.api.orcamentos.domain.ComposicaoPreco
+import com.example.api.orcamentos.domain.CustoIndireto
+import com.example.api.orcamentos.domain.FormacaoPreco
+import com.example.api.orcamentos.domain.Levantamento
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -19,3 +22,16 @@ interface AmbienteProjetoRepository : JpaRepository<AmbienteProjeto, UUID>
 
 @Repository
 interface ComposicaoPrecoRepository : JpaRepository<ComposicaoPreco, UUID>
+
+@Repository
+interface CustoIndiretoRepository : JpaRepository<CustoIndireto, UUID> {
+    fun findAllByOrcamentoIdOrderByCategoriaAscDescricaoAsc(orcamentoId: UUID): List<CustoIndireto>
+}
+
+@Repository
+interface FormacaoPrecoRepository : JpaRepository<FormacaoPreco, UUID>
+
+@Repository
+interface LevantamentoRepository : JpaRepository<Levantamento, UUID> {
+    fun findAllByOrcamentoIdOrderByCreatedAtDesc(orcamentoId: UUID): List<Levantamento>
+}
