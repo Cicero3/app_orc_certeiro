@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FolderGit2, Plus, Loader2, X, Clock, CheckCircle, XCircle } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
+import { FolderGit2, Plus, Loader2, X, Clock, CheckCircle, XCircle, ArrowLeft, Trash2 } from 'lucide-react';
 interface Orcamento {
   id: string;
   titulo: string;
@@ -21,6 +21,7 @@ export const OrcamentosList: React.FC = () => {
   const [error, setError] = useState('');
 
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   const fetchOrcamentos = async () => {
     setIsLoading(true);
@@ -77,6 +78,22 @@ export const OrcamentosList: React.FC = () => {
     }
   };
 
+  const handleDeleteOrcamento = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Tem certeza que deseja excluir este orçamento?')) return;
+    
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/orcamentos/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Falha ao excluir orçamento');
+      await fetchOrcamentos();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'RASCUNHO':
@@ -103,6 +120,13 @@ export const OrcamentosList: React.FC = () => {
     <div className="animate-fade-in" style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
+          <button 
+            onClick={() => navigate('/')} 
+            className="hover:text-white"
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', marginBottom: '1rem', padding: 0, fontSize: '0.9rem', transition: 'color 0.2s' }}
+          >
+            <ArrowLeft size={16} /> Voltar ao Dashboard
+          </button>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.8rem' }}>
             <FolderGit2 color="var(--accent-primary)" /> Meus Orçamentos
           </h1>
@@ -133,12 +157,23 @@ export const OrcamentosList: React.FC = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
           {orcamentos.map((orcamento) => (
-            <div key={orcamento.id} className="glass-panel card-hover" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'all 0.3s' }}>
+            <div key={orcamento.id} className="glass-panel card-hover" onClick={() => navigate(`/orcamentos/${orcamento.id}`)} style={{ padding: '1.5rem', cursor: 'pointer', transition: 'all 0.3s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {orcamento.titulo}
                 </h3>
-                {getStatusBadge(orcamento.status)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                  {getStatusBadge(orcamento.status)}
+                  <button 
+                    onClick={(e) => handleDeleteOrcamento(e, orcamento.id)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }}
+                    title="Excluir orçamento"
+                    onMouseOver={(e) => e.currentTarget.style.color = 'var(--danger)'}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>

@@ -4,6 +4,24 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Catalogo } from './pages/Catalogo';
 import { OrcamentosList } from './pages/OrcamentosList';
+import { OrcamentoDetail } from './pages/OrcamentoDetail';
+import { CpusPage } from './pages/CpusPage';
+import { OrcamentoPrecificacao } from './pages/OrcamentoPrecificacao';
+import { OrcamentoDimensionamento } from './pages/OrcamentoDimensionamento';
+import { AlvenariaCalculator } from './pages/calculadoras/AlvenariaCalculator';
+import {
+  BaldrameCalculator, BlocosCalculator, LajesCalculator, PilaresCalculator,
+  RadierCalculator, SapatasCalculator, TubuloesCalculator, VigasSuperioresCalculator,
+} from './pages/calculadoras/estruturas';
+import {
+  EletricaDistribuicaoCalculator, EletricaPrumadasCalculator,
+  EsgotoPluvialCalculator, HidraulicaCalculator,
+} from './pages/calculadoras/instalacoes';
+import { CoberturaCalculator } from './pages/calculadoras/CoberturaCalculator';
+import { EsquadriasCalculator } from './pages/calculadoras/EsquadriasCalculator';
+import { ChecklistOrcamento } from './pages/calculadoras/ChecklistOrcamento';
+import { PrecificacaoCalculator } from './pages/calculadoras/PrecificacaoCalculator';
+import { WhatsAppButton } from './components/WhatsAppButton';
 import { LogOut } from 'lucide-react';
 import './index.css'; 
 
@@ -42,6 +60,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const SidebarLink = ({ to, label }: { to: string; label: string }) => (
+  <Link to={to} className="btn-secondary" style={{ textAlign: 'left', border: 'none', background: 'transparent', padding: '0.45rem 0.75rem', fontSize: '0.9rem' }}>
+    {label}
+  </Link>
+);
+
+const SidebarGroup = ({ titulo, children }: { titulo: string; children: React.ReactNode }) => (
+  <>
+    <div style={{ marginTop: '1rem', marginBottom: '0.3rem' }}>
+      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', paddingLeft: '0.5rem' }}>
+        {titulo}
+      </span>
+    </div>
+    {children}
+  </>
+);
+
 // Layout base para páginas privadas (com Sidebar)
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { logout, user } = useAuth();
@@ -52,10 +87,40 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
           <h2 style={{ fontSize: '1.2rem', color: 'var(--accent-primary)' }}>Orçamento Certeiro</h2>
         </div>
-        <nav style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+        <nav style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1, overflowY: 'auto' }}>
           <Link to="/" className="btn-secondary" style={{ textAlign: 'left', border: 'none', background: 'transparent' }}>📊 Dashboard</Link>
           <Link to="/orcamentos" className="btn-secondary" style={{ textAlign: 'left', border: 'none', background: 'transparent' }}>🏗️ Meus Orçamentos</Link>
           <Link to="/catalogo" className="btn-secondary" style={{ textAlign: 'left', border: 'none', background: 'transparent' }}>📚 Catálogo SINAPI</Link>
+          <Link to="/cpus" className="btn-secondary" style={{ textAlign: 'left', border: 'none', background: 'transparent' }}>🧮 CPUs & Mão de Obra</Link>
+          
+          <SidebarGroup titulo="Fundações">
+            <SidebarLink to="/calculadoras/baldrame" label="📐 Baldrame" />
+            <SidebarLink to="/calculadoras/blocos" label="🧊 Blocos" />
+            <SidebarLink to="/calculadoras/sapatas" label="⚓ Sapatas" />
+            <SidebarLink to="/calculadoras/radier" label="🟦 Radier" />
+            <SidebarLink to="/calculadoras/tubuloes" label="🕳️ Tubulões" />
+          </SidebarGroup>
+
+          <SidebarGroup titulo="Estrutura e Vedação">
+            <SidebarLink to="/calculadoras/pilares" label="🏛️ Pilares" />
+            <SidebarLink to="/calculadoras/vigas" label="🌉 Vigas Superiores" />
+            <SidebarLink to="/calculadoras/lajes" label="⬜ Lajes" />
+            <SidebarLink to="/calculadoras/alvenaria" label="🧱 Alvenaria" />
+            <SidebarLink to="/calculadoras/esquadrias" label="🚪 Esquadrias" />
+            <SidebarLink to="/calculadoras/cobertura" label="🏠 Cobertura" />
+          </SidebarGroup>
+
+          <SidebarGroup titulo="Instalações">
+            <SidebarLink to="/calculadoras/eletrica-distribuicao" label="⚡ Elétrica Distribuição" />
+            <SidebarLink to="/calculadoras/eletrica-prumadas" label="🔌 Elétrica Prumadas" />
+            <SidebarLink to="/calculadoras/hidraulica" label="💧 Hidráulica" />
+            <SidebarLink to="/calculadoras/esgoto-pluvial" label="🌊 Esgoto e Pluvial" />
+          </SidebarGroup>
+
+          <SidebarGroup titulo="Gestão do Orçamento">
+            <SidebarLink to="/checklist" label="✅ Checklist de Orçamento" />
+            <SidebarLink to="/precificacao" label="💰 Precificação e BDI" />
+          </SidebarGroup>
         </nav>
         
         <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -72,6 +137,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       <main className="main-content">
         {children}
       </main>
+
+      <WhatsAppButton />
     </div>
   );
 };
@@ -86,7 +153,28 @@ function App() {
         {/* Rotas Privadas */}
         <Route path="/" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
         <Route path="/orcamentos" element={<ProtectedRoute><MainLayout><OrcamentosList /></MainLayout></ProtectedRoute>} />
+        <Route path="/orcamentos/:id" element={<ProtectedRoute><MainLayout><OrcamentoDetail /></MainLayout></ProtectedRoute>} />
+        <Route path="/orcamentos/:id/precificacao" element={<ProtectedRoute><MainLayout><OrcamentoPrecificacao /></MainLayout></ProtectedRoute>} />
+        <Route path="/orcamentos/:id/dimensionamento" element={<ProtectedRoute><MainLayout><OrcamentoDimensionamento /></MainLayout></ProtectedRoute>} />
         <Route path="/catalogo" element={<ProtectedRoute><MainLayout><Catalogo /></MainLayout></ProtectedRoute>} />
+        <Route path="/cpus" element={<ProtectedRoute><MainLayout><CpusPage /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/alvenaria" element={<ProtectedRoute><MainLayout><AlvenariaCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/baldrame" element={<ProtectedRoute><MainLayout><BaldrameCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/blocos" element={<ProtectedRoute><MainLayout><BlocosCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/sapatas" element={<ProtectedRoute><MainLayout><SapatasCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/radier" element={<ProtectedRoute><MainLayout><RadierCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/tubuloes" element={<ProtectedRoute><MainLayout><TubuloesCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/pilares" element={<ProtectedRoute><MainLayout><PilaresCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/vigas" element={<ProtectedRoute><MainLayout><VigasSuperioresCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/lajes" element={<ProtectedRoute><MainLayout><LajesCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/esquadrias" element={<ProtectedRoute><MainLayout><EsquadriasCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/cobertura" element={<ProtectedRoute><MainLayout><CoberturaCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/eletrica-distribuicao" element={<ProtectedRoute><MainLayout><EletricaDistribuicaoCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/eletrica-prumadas" element={<ProtectedRoute><MainLayout><EletricaPrumadasCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/hidraulica" element={<ProtectedRoute><MainLayout><HidraulicaCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/calculadoras/esgoto-pluvial" element={<ProtectedRoute><MainLayout><EsgotoPluvialCalculator /></MainLayout></ProtectedRoute>} />
+        <Route path="/checklist" element={<ProtectedRoute><MainLayout><ChecklistOrcamento /></MainLayout></ProtectedRoute>} />
+        <Route path="/precificacao" element={<ProtectedRoute><MainLayout><PrecificacaoCalculator /></MainLayout></ProtectedRoute>} />
       </Routes>
     </Router>
   );
