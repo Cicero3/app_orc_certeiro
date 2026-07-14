@@ -4,7 +4,10 @@ import { Plus, Trash2, Loader2, X, Pencil, HardHat, Layers, Search } from 'lucid
 
 // ---------- Tipos ----------
 
-interface FuncaoSalarial { id: string; nome: string; valorHora: number }
+interface FuncaoSalarial {
+  id: string; nome: string; valorHora: number;
+  tipoContratacao: string; encargosPct: number; valorHoraComEncargos: number;
+}
 
 interface CpuSummary { id: string; codigo: string; descricao: string; unidade: string; isAuxiliar: boolean; valorUnitario: number }
 
@@ -53,8 +56,9 @@ export const CpusPage: React.FC = () => {
   const [error, setError] = useState('');
 
   // Funções salariais — edição inline
-  const [novaFuncao, setNovaFuncao] = useState({ nome: '', valorHora: '' });
-  const [editFuncao, setEditFuncao] = useState<{ id: string; nome: string; valorHora: string } | null>(null);
+  const [novaFuncao, setNovaFuncao] = useState({ nome: '', valorHora: '', tipo: 'HORISTA' });
+  const [editFuncao, setEditFuncao] = useState<{ id: string; nome: string; valorHora: string; tipo: string; encargos: string } | null>(null);
+  const [encargosLote, setEncargosLote] = useState({ horista: '88,28', mensalista: '49,82' });
 
   // CPU — modal de criação/edição
   const [cpuModal, setCpuModal] = useState<CpuDetail | 'nova' | null>(null);
@@ -129,11 +133,22 @@ export const CpusPage: React.FC = () => {
                 <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0', borderBottom: '1px solid var(--border-color)' }}>
                   {editFuncao?.id === f.id ? (
                     <>
-                      <input style={{ ...inputStyle, flex: 1 }} value={editFuncao.nome} onChange={(e) => setEditFuncao({ ...editFuncao, nome: e.target.value })} />
-                      <input style={{ ...inputStyle, width: '90px', textAlign: 'right' }} value={editFuncao.valorHora} onChange={(e) => setEditFuncao({ ...editFuncao, valorHora: e.target.value })} />
+                      <input style={{ ...inputStyle, flex: 1, minWidth: '70px' }} value={editFuncao.nome} onChange={(e) => setEditFuncao({ ...editFuncao, nome: e.target.value })} />
+                      <input style={{ ...inputStyle, width: '64px', textAlign: 'right' }} title="Salário-hora base" value={editFuncao.valorHora} onChange={(e) => setEditFuncao({ ...editFuncao, valorHora: e.target.value })} />
+                      <select style={{ ...inputStyle, width: '64px' }} title="Tipo de contratação" value={editFuncao.tipo} onChange={(e) => setEditFuncao({ ...editFuncao, tipo: e.target.value })}>
+                        <option value="HORISTA">Hor.</option>
+                        <option value="MENSALISTA">Mens.</option>
+                      </select>
+                      <input style={{ ...inputStyle, width: '58px', textAlign: 'right' }} title="Encargos %" value={editFuncao.encargos} onChange={(e) => setEditFuncao({ ...editFuncao, encargos: e.target.value })} />
                       <button
                         onClick={() => executar(async () => {
-                          await call(`/funcoes-salariais/${f.id}`, { method: 'PUT', body: JSON.stringify({ nome: editFuncao.nome, valorHora: num(editFuncao.valorHora) }) });
+                          await call(`/funcoes-salariais/${f.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                              nome: editFuncao.nome, valorHora: num(editFuncao.valorHora),
+                              tipoContratacao: editFuncao.tipo, encargosPct: num(editFuncao.encargos) / 100,
+                            }),
+                          });
                           setEditFuncao(null);
                         })}
                         className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
@@ -141,9 +156,17 @@ export const CpusPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <span style={{ flex: 1 }}>{f.nome}</span>
-                      <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtMoeda(f.valorHora)}</strong>
-                      <button onClick={() => setEditFuncao({ id: f.id, nome: f.nome, valorHora: String(f.valorHora) })} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }}><Pencil size={13} /></button>
+                      <span style={{ flex: 1 }}>
+                        {f.nome}
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.35rem' }}>
+                          {f.tipoContratacao === 'HORISTA' ? 'Hor.' : 'Mens.'} · enc. {(f.encargosPct * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%
+                        </span>
+                      </span>
+                      <span style={{ textAlign: 'right' }}>
+                        <strong style={{ fontVariantNumeric: 'tabular-nums' }} title="Custo-hora com encargos">{fmtMoeda(f.valorHoraComEncargos)}</strong>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>base {fmtMoeda(f.valorHora)}</div>
+                      </span>
+                      <button onClick={() => setEditFuncao({ id: f.id, nome: f.nome, valorHora: String(f.valorHora), tipo: f.tipoContratacao, encargos: String(f.encargosPct * 100) })} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }}><Pencil size={13} /></button>
                       <button
                         onClick={() => { if (window.confirm(`Excluir a função "${f.nome}"?`)) executar(() => call(`/funcoes-salariais/${f.id}`, { method: 'DELETE' })); }}
                         style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.2rem' }}
@@ -160,16 +183,47 @@ export const CpusPage: React.FC = () => {
                 e.preventDefault();
                 if (!novaFuncao.nome.trim()) return;
                 executar(async () => {
-                  await call('/funcoes-salariais', { method: 'POST', body: JSON.stringify({ nome: novaFuncao.nome.trim(), valorHora: num(novaFuncao.valorHora) }) });
-                  setNovaFuncao({ nome: '', valorHora: '' });
+                  await call('/funcoes-salariais', {
+                    method: 'POST',
+                    body: JSON.stringify({ nome: novaFuncao.nome.trim(), valorHora: num(novaFuncao.valorHora), tipoContratacao: novaFuncao.tipo }),
+                  });
+                  setNovaFuncao({ nome: '', valorHora: '', tipo: novaFuncao.tipo });
                 });
               }}
               style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
             >
               <input style={{ ...inputStyle, flex: 1 }} placeholder="Função (ex: Pedreiro)" value={novaFuncao.nome} onChange={(e) => setNovaFuncao({ ...novaFuncao, nome: e.target.value })} />
-              <input style={{ ...inputStyle, width: '90px' }} placeholder="R$/h" value={novaFuncao.valorHora} onChange={(e) => setNovaFuncao({ ...novaFuncao, valorHora: e.target.value })} />
+              <input style={{ ...inputStyle, width: '70px' }} placeholder="R$/h" value={novaFuncao.valorHora} onChange={(e) => setNovaFuncao({ ...novaFuncao, valorHora: e.target.value })} />
+              <select style={{ ...inputStyle, width: '70px' }} value={novaFuncao.tipo} onChange={(e) => setNovaFuncao({ ...novaFuncao, tipo: e.target.value })}>
+                <option value="HORISTA">Hor.</option>
+                <option value="MENSALISTA">Mens.</option>
+              </select>
               <button type="submit" className="btn-primary" style={{ padding: '0.4rem 0.7rem' }}><Plus size={16} /></button>
             </form>
+
+            {/* Encargos sociais em lote (planilha 004) */}
+            <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                Encargos sociais (%) — aplicar em todas as funções:
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Horista</label>
+                <input style={{ ...inputStyle, width: '70px', textAlign: 'right' }} value={encargosLote.horista} onChange={(e) => setEncargosLote({ ...encargosLote, horista: e.target.value })} />
+                <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mensalista</label>
+                <input style={{ ...inputStyle, width: '70px', textAlign: 'right' }} value={encargosLote.mensalista} onChange={(e) => setEncargosLote({ ...encargosLote, mensalista: e.target.value })} />
+                <button
+                  className="btn-secondary"
+                  style={{ padding: '0.35rem 0.7rem', fontSize: '0.8rem' }}
+                  onClick={() => executar(() => call('/funcoes-salariais/aplicar-encargos', {
+                    method: 'POST',
+                    body: JSON.stringify({ horistaPct: num(encargosLote.horista) / 100, mensalistaPct: num(encargosLote.mensalista) / 100 }),
+                  }))}
+                >Aplicar</button>
+              </div>
+              <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.4rem' }}>
+                Referência (desonerados): horista 88,28% · mensalista 49,82%. As CPUs usam o custo-hora COM encargos.
+              </p>
+            </div>
           </div>
 
           {/* CPUs próprias */}
@@ -270,7 +324,7 @@ const CpuEditorModal: React.FC<CpuEditorProps> = ({ cpu, funcoes, auxiliares, on
 
   const resolverCusto = (i: InsumoForm): number => {
     if (i.cpuReferenciaId) return auxiliares.find((a) => a.id === i.cpuReferenciaId)?.valorUnitario ?? 0;
-    if (i.funcaoSalarialId) return funcoes.find((f) => f.id === i.funcaoSalarialId)?.valorHora ?? 0;
+    if (i.funcaoSalarialId) return funcoes.find((f) => f.id === i.funcaoSalarialId)?.valorHoraComEncargos ?? 0;
     return num(i.custoUnitario);
   };
 
@@ -366,7 +420,7 @@ const CpuEditorModal: React.FC<CpuEditorProps> = ({ cpu, funcoes, auxiliares, on
                   {i.tipoInsumo === 'MAO_DE_OBRA' ? (
                     <select style={inputStyle} value={i.funcaoSalarialId} onChange={(e) => update(i.key, { funcaoSalarialId: e.target.value, cpuReferenciaId: '' })}>
                       <option value="">— manual —</option>
-                      {funcoes.map((f) => <option key={f.id} value={f.id}>{f.nome} ({fmtMoeda(f.valorHora)}/h)</option>)}
+                      {funcoes.map((f) => <option key={f.id} value={f.id}>{f.nome} ({fmtMoeda(f.valorHoraComEncargos)}/h c/ enc.)</option>)}
                     </select>
                   ) : (
                     <select style={inputStyle} value={i.cpuReferenciaId} disabled={isAuxiliar} onChange={(e) => update(i.key, { cpuReferenciaId: e.target.value, funcaoSalarialId: '' })}>

@@ -73,10 +73,10 @@ class CpuPropria(
 
     fun limparInsumos() = _insumos.clear()
 
-    /** Custo unitário do insumo resolvido: CPU auxiliar > função salarial > custo digitado. */
+    /** Custo unitário do insumo resolvido: CPU auxiliar > função salarial (com encargos) > custo digitado. */
     private fun custoResolvido(insumo: CpuInsumo): BigDecimal =
         insumo.cpuReferencia?.valorUnitario
-            ?: insumo.funcaoSalarial?.valorHora
+            ?: insumo.funcaoSalarial?.valorHoraComEncargos
             ?: insumo.custoUnitario
 
     private fun somaPorTipo(vararg tipos: TipoInsumoCpu): BigDecimal =
