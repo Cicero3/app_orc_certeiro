@@ -2,6 +2,7 @@ package com.example.api.cpus.api
 
 import com.example.api.auth.security.UserPrincipal
 import com.example.api.common.dto.ApiResponse
+import com.example.api.cpus.api.dto.AplicarEncargosDto
 import com.example.api.cpus.api.dto.CpuDetailDto
 import com.example.api.cpus.api.dto.CpuSummaryDto
 import com.example.api.cpus.api.dto.CpuUpsertDto
@@ -93,6 +94,14 @@ class CpusController(
         @Valid @RequestBody dto: FuncaoSalarialUpsertDto
     ): ResponseEntity<ApiResponse<FuncaoSalarialDto>> =
         ResponseEntity.ok(ApiResponse(data = gerenciarCpuUseCase.atualizarFuncao(user.id, id, dto)))
+
+    /** Aplica encargos sociais em lote por tipo de contratação (planilha 004). */
+    @PostMapping("/funcoes-salariais/aplicar-encargos")
+    fun aplicarEncargos(
+        @AuthenticationPrincipal user: UserPrincipal,
+        @Valid @RequestBody dto: AplicarEncargosDto
+    ): ResponseEntity<ApiResponse<List<FuncaoSalarialDto>>> =
+        ResponseEntity.ok(ApiResponse(data = gerenciarCpuUseCase.aplicarEncargos(user.id, dto.horistaPct, dto.mensalistaPct)))
 
     @DeleteMapping("/funcoes-salariais/{id}")
     fun excluirFuncao(

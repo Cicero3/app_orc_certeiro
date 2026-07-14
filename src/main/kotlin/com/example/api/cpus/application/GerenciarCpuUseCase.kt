@@ -10,6 +10,7 @@ import com.example.api.cpus.api.dto.FuncaoSalarialUpsertDto
 import com.example.api.cpus.domain.CpuInsumo
 import com.example.api.cpus.domain.CpuPropria
 import com.example.api.cpus.domain.FuncaoSalarial
+import com.example.api.cpus.domain.TipoContratacao
 import com.example.api.cpus.domain.TipoInsumoCpu
 import com.example.api.cpus.infrastructure.CpuPropriaRepository
 import com.example.api.cpus.infrastructure.FuncaoSalarialRepository
@@ -38,15 +39,33 @@ class GerenciarCpuUseCase(
         if (funcaoRepository.existsByOwnerIdAndNomeIgnoreCase(userId, dto.nome)) {
             throw IllegalArgumentException("Já existe uma função com o nome '${dto.nome}'.")
         }
-        val funcao = FuncaoSalarial(ownerId = userId, nome = dto.nome, valorHora = dto.valorHora)
+        val funcao = FuncaoSalarial(
+            ownerId = userId,
+            nome = dto.nome,
+            valorHora = dto.valorHora,
+            tipoContratacao = parseTipoContratacao(dto.tipoContratacao),
+            encargosPct = dto.encargosPct
+        )
         return funcaoRepository.save(funcao).toDto()
     }
 
     @Transactional
     fun atualizarFuncao(userId: UUID, funcaoId: UUID, dto: FuncaoSalarialUpsertDto): FuncaoSalarialDto {
         val funcao = carregarFuncaoDoDono(userId, funcaoId)
-        funcao.atualizar(dto.nome, dto.valorHora)
+        funcao.atualizar(dto.nome, dto.valorHora, parseTipoContratacao(dto.tipoContratacao), dto.encargosPct)
         return funcaoRepository.save(funcao).toDto()
+    }
+
+    /** Aplica os encargos em lote por tipo (ex.: horista 88,28% / mensalista 49,82% — planilha 004). */
+    @Transactional
+    fun aplicarEncargos(userId: UUID, horistaPct: java.math.BigDecimal, mensalistaPct: java.math.BigDecimal): List<FuncaoSalarialDto> {
+        val funcoes = funcaoRepository.findAllByOwnerIdOrderByNomeAsc(userId)
+        funcoes.forEach { funcao ->
+            funcao.aplicarEncargos(
+                if (funcao.tipoContratacao == TipoContratacao.HORISTA) horistaPct else mensalistaPct
+            )
+        }
+        return funcaoRepository.saveAll(funcoes).map { it.toDto() }
     }
 
     @Transactional
@@ -153,7 +172,15 @@ class GerenciarCpuUseCase(
         runCatching { TipoInsumoCpu.valueOf(valor.uppercase()) }
             .getOrElse { throw IllegalArgumentException("Tipo de insumo desconhecido: $valor") }
 
-    private fun FuncaoSalarial.toDto() = FuncaoSalarialDto(id = id, nome = nome, valorHora = valorHora)
+    private fun parseTipoContratacao(valor: String): TipoContratacao =
+        runCatching { TipoContratacao.valueOf(valor.uppercase()) }
+            .getOrElse { throw IllegalArgumentException("Tipo de contratação desconhecido: $valor (use HORISTA ou MENSALISTA)") }
+
+    private fun FuncaoSalarial.toDto() = FuncaoSalarialDto(
+        id = id, nome = nome, valorHora = valorHora,
+        tipoContratacao = tipoContratacao.name, encargosPct = encargosPct,
+        valorHoraComEncargos = valorHoraComEncargos
+    )
 
     private fun CpuPropria.toSummaryDto() = CpuSummaryDto(
         id = id, codigo = codigo, descricao = descricao, unidade = unidade,

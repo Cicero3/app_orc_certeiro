@@ -15,13 +15,33 @@ data class FuncaoSalarialUpsertDto(
     val nome: String,
 
     @field:DecimalMin(value = "0", message = "Valor-hora não pode ser negativo")
-    val valorHora: BigDecimal
+    val valorHora: BigDecimal,
+
+    /** HORISTA ou MENSALISTA. */
+    val tipoContratacao: String = "HORISTA",
+
+    /** Encargos sociais como fração (0.8828 = 88,28%). */
+    @field:DecimalMin(value = "0", message = "Encargos não podem ser negativos")
+    val encargosPct: BigDecimal = BigDecimal.ZERO
 )
 
 data class FuncaoSalarialDto(
     val id: UUID,
     val nome: String,
-    val valorHora: BigDecimal
+    val valorHora: BigDecimal,
+    val tipoContratacao: String,
+    val encargosPct: BigDecimal,
+    /** Custo-hora efetivo usado nas CPUs: base × (1 + encargos). */
+    val valorHoraComEncargos: BigDecimal
+)
+
+/** Aplica encargos em lote por tipo de contratação (planilha 004). */
+data class AplicarEncargosDto(
+    @field:DecimalMin(value = "0", message = "Encargos não podem ser negativos")
+    val horistaPct: BigDecimal,
+
+    @field:DecimalMin(value = "0", message = "Encargos não podem ser negativos")
+    val mensalistaPct: BigDecimal
 )
 
 // ---------- CPUs próprias ----------

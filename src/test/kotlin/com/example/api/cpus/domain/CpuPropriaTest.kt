@@ -64,6 +64,24 @@ class CpuPropriaTest {
     }
 
     @Test
+    fun `custo hora da funcao deve incluir encargos sociais como a planilha 004`() {
+        // Planilha 004: carpinteiro horista R$ 23,40 base, encargos desonerados 88,28%
+        val carpinteiro = FuncaoSalarial(
+            ownerId = ownerId, nome = "Carpinteiro", valorHora = BigDecimal("23.40"),
+            tipoContratacao = TipoContratacao.HORISTA, encargosPct = BigDecimal("0.8828")
+        )
+        // 23,40 × 1,8828 = 44,05752
+        assertEquals(0, BigDecimal("44.05752").compareTo(carpinteiro.valorHoraComEncargos))
+
+        val cpu = CpuPropria(ownerId = ownerId, codigo = "F1", descricao = "Forma", unidade = "M2")
+        cpu.adicionarInsumo(
+            CpuInsumo(tipoInsumo = TipoInsumoCpu.MAO_DE_OBRA, descricao = "Carpinteiro", unidade = "HR", coeficiente = BigDecimal("2"), funcaoSalarial = carpinteiro)
+        )
+        // 2 × 44,05752 = 88,11504 — a CPU usa o custo-hora COM encargos
+        assertEquals(0, BigDecimal("88.11504").compareTo(cpu.valorMo))
+    }
+
+    @Test
     fun `composicao auxiliar nao pode referenciar outra composicao`() {
         val aux1 = CpuPropria(ownerId = ownerId, codigo = "AUX-01", descricao = "Argamassa", unidade = "M3", isAuxiliar = true)
         val aux2 = CpuPropria(ownerId = ownerId, codigo = "AUX-02", descricao = "Concreto", unidade = "M3", isAuxiliar = true)
