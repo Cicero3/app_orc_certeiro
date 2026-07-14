@@ -354,6 +354,12 @@ export const OrcamentoDetail: React.FC = () => {
         <button className="btn-secondary" onClick={() => navigate(`/orcamentos/${id}/dimensionamento`)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           👷 Equipes e Prazos
         </button>
+        <button className="btn-secondary" onClick={() => navigate(`/orcamentos/${id}/riscos`)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          🎲 Riscos e Contingência
+        </button>
+        <button className="btn-secondary" onClick={() => navigate(`/orcamentos/${id}/cronograma`)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          📅 Cronograma
+        </button>
         {acoes.map((a) => (
           <button key={a.acao} className="btn-secondary" onClick={() => mudarStatus(a.acao)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Send size={14} /> {a.label}

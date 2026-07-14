@@ -8,6 +8,8 @@ import { OrcamentoDetail } from './pages/OrcamentoDetail';
 import { CpusPage } from './pages/CpusPage';
 import { OrcamentoPrecificacao } from './pages/OrcamentoPrecificacao';
 import { OrcamentoDimensionamento } from './pages/OrcamentoDimensionamento';
+import { OrcamentoRiscos } from './pages/OrcamentoRiscos';
+import { OrcamentoCronograma } from './pages/OrcamentoCronograma';
 import { AlvenariaCalculator } from './pages/calculadoras/AlvenariaCalculator';
 import {
   BaldrameCalculator, BlocosCalculator, LajesCalculator, PilaresCalculator,
@@ -156,6 +158,8 @@ function App() {
         <Route path="/orcamentos/:id" element={<ProtectedRoute><MainLayout><OrcamentoDetail /></MainLayout></ProtectedRoute>} />
         <Route path="/orcamentos/:id/precificacao" element={<ProtectedRoute><MainLayout><OrcamentoPrecificacao /></MainLayout></ProtectedRoute>} />
         <Route path="/orcamentos/:id/dimensionamento" element={<ProtectedRoute><MainLayout><OrcamentoDimensionamento /></MainLayout></ProtectedRoute>} />
+        <Route path="/orcamentos/:id/riscos" element={<ProtectedRoute><MainLayout><OrcamentoRiscos /></MainLayout></ProtectedRoute>} />
+        <Route path="/orcamentos/:id/cronograma" element={<ProtectedRoute><MainLayout><OrcamentoCronograma /></MainLayout></ProtectedRoute>} />
         <Route path="/catalogo" element={<ProtectedRoute><MainLayout><Catalogo /></MainLayout></ProtectedRoute>} />
         <Route path="/cpus" element={<ProtectedRoute><MainLayout><CpusPage /></MainLayout></ProtectedRoute>} />
         <Route path="/calculadoras/alvenaria" element={<ProtectedRoute><MainLayout><AlvenariaCalculator /></MainLayout></ProtectedRoute>} />
