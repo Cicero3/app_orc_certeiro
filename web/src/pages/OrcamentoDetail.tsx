@@ -360,6 +360,9 @@ export const OrcamentoDetail: React.FC = () => {
         <button className="btn-secondary" onClick={() => navigate(`/orcamentos/${id}/cronograma`)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           📅 Cronograma
         </button>
+        <button className="btn-secondary" onClick={() => navigate(`/orcamentos/${id}/diario`)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          📓 Diário de Obra
+        </button>
         {acoes.map((a) => (
           <button key={a.acao} className="btn-secondary" onClick={() => mudarStatus(a.acao)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Send size={14} /> {a.label}
