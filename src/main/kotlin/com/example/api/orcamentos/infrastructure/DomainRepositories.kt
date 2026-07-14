@@ -6,7 +6,9 @@ import com.example.api.orcamentos.domain.AmbienteProjeto
 import com.example.api.orcamentos.domain.ComposicaoPreco
 import com.example.api.orcamentos.domain.CustoIndireto
 import com.example.api.orcamentos.domain.FormacaoPreco
+import com.example.api.orcamentos.domain.CronogramaAlocacao
 import com.example.api.orcamentos.domain.Levantamento
+import com.example.api.orcamentos.domain.Risco
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID
@@ -34,4 +36,15 @@ interface FormacaoPrecoRepository : JpaRepository<FormacaoPreco, UUID>
 @Repository
 interface LevantamentoRepository : JpaRepository<Levantamento, UUID> {
     fun findAllByOrcamentoIdOrderByCreatedAtDesc(orcamentoId: UUID): List<Levantamento>
+}
+
+@Repository
+interface RiscoRepository : JpaRepository<Risco, UUID> {
+    fun findAllByOrcamentoIdOrderByCreatedAtAsc(orcamentoId: UUID): List<Risco>
+}
+
+@Repository
+interface CronogramaAlocacaoRepository : JpaRepository<CronogramaAlocacao, UUID> {
+    fun findAllByOrcamentoId(orcamentoId: UUID): List<CronogramaAlocacao>
+    fun findByOrcamentoIdAndModuloIdAndPeriodo(orcamentoId: UUID, moduloId: UUID, periodo: Int): CronogramaAlocacao?
 }
