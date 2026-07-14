@@ -7,6 +7,7 @@ import com.example.api.orcamentos.domain.ComposicaoPreco
 import com.example.api.orcamentos.domain.CustoIndireto
 import com.example.api.orcamentos.domain.FormacaoPreco
 import com.example.api.orcamentos.domain.CronogramaAlocacao
+import com.example.api.orcamentos.domain.DiarioObra
 import com.example.api.orcamentos.domain.Levantamento
 import com.example.api.orcamentos.domain.Risco
 import org.springframework.data.jpa.repository.JpaRepository
@@ -41,6 +42,12 @@ interface LevantamentoRepository : JpaRepository<Levantamento, UUID> {
 @Repository
 interface RiscoRepository : JpaRepository<Risco, UUID> {
     fun findAllByOrcamentoIdOrderByCreatedAtAsc(orcamentoId: UUID): List<Risco>
+}
+
+@Repository
+interface DiarioObraRepository : JpaRepository<DiarioObra, UUID> {
+    fun findAllByOrcamentoIdOrderByDataDesc(orcamentoId: UUID): List<DiarioObra>
+    fun findByOrcamentoIdAndData(orcamentoId: UUID, data: java.time.LocalDate): DiarioObra?
 }
 
 @Repository
