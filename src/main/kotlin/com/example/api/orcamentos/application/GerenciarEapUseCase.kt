@@ -91,7 +91,9 @@ class GerenciarEapUseCase(
             parent.adicionarSubItem(novoItem)
         }
 
-        return eapItemRepository.save(novoItem)
+        // O pai (módulo/item) é gerenciado e tem cascade ALL: o persist acontece no commit.
+        // Chamar save() aqui geraria merge de uma 2ª instância com o mesmo UUID (NonUniqueObjectException).
+        return novoItem
     }
 
     @Transactional
@@ -180,7 +182,8 @@ class GerenciarEapUseCase(
             )
         }
 
-        return eapItemRepository.save(novoItem)
+        // Persist via cascade do pai gerenciado — save() aqui duplicaria o UUID na sessão.
+        return novoItem
     }
 
     @Transactional
