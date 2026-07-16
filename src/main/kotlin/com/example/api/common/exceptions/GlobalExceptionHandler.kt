@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -78,6 +79,23 @@ class GlobalExceptionHandler {
                 error = ErrorResponse.ErrorDetail(
                     code = "NOT_FOUND",
                     message = ex.message ?: "Resource not found",
+                    path = request.requestURI
+                )
+            )
+        )
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleUnreadableBody(
+        ex: HttpMessageNotReadableException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        logger.warn("Malformed request body at ${request.requestURI}: ${ex.message}")
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            ErrorResponse(
+                error = ErrorResponse.ErrorDetail(
+                    code = "MALFORMED_BODY",
+                    message = "Corpo da requisição inválido ou mal formatado (JSON/UTF-8)",
                     path = request.requestURI
                 )
             )

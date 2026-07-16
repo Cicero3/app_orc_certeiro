@@ -66,6 +66,7 @@ class CopiarItemCatalogoUseCase(
             novoEapItem.adicionarComposicao(composicao)
         }
 
-        return eapItemRepository.save(novoEapItem)
+        // Persist via cascade do pai gerenciado (módulo/item) — save() aqui duplicaria o UUID na sessão.
+        return novoEapItem
     }
 }
